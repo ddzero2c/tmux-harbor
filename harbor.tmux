@@ -24,4 +24,4 @@ key="$(get_tmux_option @harbor-key 'o')"
 # the binding fires, so the picker knows exactly which pane to split even
 # though it runs in a popup (or a throwaway window) of its own.
 tmux bind-key "$key" \
-  run-shell "$CURRENT_DIR/scripts/launch.sh '#{q:client_name}' '#{q:session_id}' '#{q:pane_id}'"
+  run-shell "$CURRENT_DIR/scripts/launch.sh '#{q:client_name}' '#{session_id}' '#{pane_id}'"
