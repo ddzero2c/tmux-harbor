@@ -35,6 +35,7 @@ Default keys inside the picker (each is configurable, see Options):
 | `ctrl-t` | new window in the current session at that directory      |
 | `ctrl-s` | horizontal split (below the current pane)                |
 | `ctrl-v` | vertical split (right of the current pane)               |
+| `ctrl-n` | create a git worktree in the selected repo (asks for a branch name) and open a session for it |
 | `ctrl-x` | if the entry is a worktree: remove it, its branch and session (asks first) |
 
 Session names are the directory basename with `.` and `:` replaced by `_`.
@@ -54,20 +55,33 @@ harbor.sh list                       # print candidate directories
 ```tmux
 set -g @harbor-key 'o'                      # prefix key (unset = no binding)
 set -g @harbor-paths '~/repo ~/work'        # dirs whose children are listed (default: ~)
-set -g @harbor-worktrees '.claude/worktrees' # worktree subdirs under each child
+set -g @harbor-worktrees-dir '.claude/worktrees' # worktree dir under each repo
+set -g @harbor-worktree-cmd 'claude'          # typed into a new worktree's session
+set -g @harbor-worktree-copy '.env'           # find -name pattern copied into new worktrees
+set -g @harbor-worktree-copy-depth '2'        # how deep to look for them (monorepos)
 set -g @harbor-popup-width '80%'
 set -g @harbor-popup-height '80%'
 set -g @harbor-fzf-key-window 'ctrl-t'           # fzf keys, in fzf key syntax: new window
 set -g @harbor-fzf-key-split 'ctrl-s'            # horizontal split
 set -g @harbor-fzf-key-vsplit 'ctrl-v'           # vertical split
-set -g @harbor-fzf-key-remove-worktree 'ctrl-x'           # remove worktree
+set -g @harbor-fzf-key-worktree 'ctrl-n'          # new worktree
+set -g @harbor-fzf-key-remove-worktree 'ctrl-x'   # remove worktree
 ```
 
-`@harbor-paths` and `@harbor-worktrees` take space separated values.
-For each `<path>` in `@harbor-paths`, every `<path>/*` is listed, plus
-every `<path>/*/<sub>/*` for each `<sub>` in `@harbor-worktrees`. Entries
-under a worktree subdir are the ones `ctrl-x` can remove. Set
-`@harbor-worktrees ''` to disable worktree listing.
+`@harbor-paths` takes space separated values. For each `<path>`, every
+`<path>/*` is listed, plus every `<path>/*/<@harbor-worktrees-dir>/*`. Entries
+under the worktrees dir are the ones `ctrl-x` can remove. Set
+`@harbor-worktrees-dir ''` to disable worktree listing and creation.
+
+### Worktrees
+
+`ctrl-n` on a repo (or on one of its worktrees) asks for a branch name and
+creates `<repo>/<@harbor-worktrees-dir>/<branch>` (with `/` replaced by `-`).
+An existing local branch is checked out; otherwise the branch is created from
+`origin/<branch>` when it exists, else from origin's default branch. Files
+matching `@harbor-worktree-copy` (searched `@harbor-worktree-copy-depth` levels
+deep in the main checkout) are copied over, then a session opens for the new
+worktree and `@harbor-worktree-cmd`, when set, is typed into it.
 
 ## Credits
 

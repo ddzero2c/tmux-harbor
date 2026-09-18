@@ -7,6 +7,7 @@
 #   harbor.sh hsplit <pane_id> <dir>                  split below <pane_id>
 #   harbor.sh vsplit <pane_id> <dir>                  split right of <pane_id>
 #   harbor.sh remove <dir>                            delete the worktree at <dir>
+#   harbor.sh worktree <repo-or-worktree> <branch>     create a worktree for <branch> and open it
 #   harbor.sh list                                    print candidate dirs
 #
 # Picker keys (defaults; override with @harbor-fzf-key-<action>):
@@ -15,6 +16,7 @@
 #   ctrl-s  horizontal split (below) in the current pane (@harbor-fzf-key-split)
 #   ctrl-v  vertical split (right) in the current pane   (@harbor-fzf-key-vsplit)
 #   ctrl-x  delete the selected worktree, branch, session (@harbor-fzf-key-remove-worktree)
+#   ctrl-n  create a worktree in the selected repo        (@harbor-fzf-key-worktree)
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=helpers.sh
@@ -35,10 +37,8 @@ search_paths() {
   done
 }
 
-worktree_subdirs() {
-  local raw
-  raw="$(get_tmux_option @harbor-worktrees '.claude/worktrees')"
-  printf '%s\n' $raw
+worktrees_dir() {
+  get_tmux_option @harbor-worktrees-dir '.claude/worktrees'
 }
 
 # ----------------------------------------------------------------------------
@@ -49,13 +49,11 @@ worktree_subdirs() {
 # followed by every direct child of <child>/<worktree-subdir>.
 candidates() {
   local root sub
+  sub="$(worktrees_dir)"
   while IFS= read -r root; do
     [ -d "$root" ] || continue
     find "$root" -mindepth 1 -maxdepth 1 -type d 2>/dev/null
-    while IFS= read -r sub; do
-      [ -n "$sub" ] || continue
-      find "$root"/*/"$sub" -mindepth 1 -maxdepth 1 -type d 2>/dev/null
-    done < <(worktree_subdirs)
+    [ -n "$sub" ] && find "$root"/*/"$sub" -mindepth 1 -maxdepth 1 -type d 2>/dev/null
   done < <(search_paths)
 }
 
@@ -69,18 +67,17 @@ list() {
 # ----------------------------------------------------------------------------
 
 # worktree_root <dir>
-# Prints the main repo path when <dir> sits at <repo>/<worktree-subdir>/<name>
-# for one of the configured subdirs; prints nothing otherwise.
+# Prints the main repo path when <dir> sits at <repo>/<worktrees-dir>/<name>;
+# prints nothing (and fails) otherwise.
 worktree_root() {
   local dir=$1 sub parent
-  while IFS= read -r sub; do
-    [ -n "$sub" ] || continue
-    parent="$(dirname "$dir")"
-    if [ "${parent%/"$sub"}" != "$parent" ]; then
-      printf '%s' "${parent%/"$sub"}"
-      return 0
-    fi
-  done < <(worktree_subdirs)
+  sub="$(worktrees_dir)"
+  [ -n "$sub" ] || return 1
+  parent="$(dirname "$dir")"
+  if [ "${parent%/"$sub"}" != "$parent" ]; then
+    printf '%s' "${parent%/"$sub"}"
+    return 0
+  fi
   return 1
 }
 
@@ -120,6 +117,85 @@ remove() {
   [ -n "$branch" ] && git -C "$repo" branch -D "$branch" 2>/dev/null
   tmux kill-session -t "=$(session_name_for "$dir")" 2>/dev/null
   return 0
+}
+
+# ----------------------------------------------------------------------------
+# Worktree creation
+# ----------------------------------------------------------------------------
+
+branch_exists() {
+  git -C "$1" show-ref --verify --quiet "$2"
+}
+
+default_branch() {
+  local branch
+  branch="$(git -C "$1" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')"
+  printf '%s' "${branch:-main}"
+}
+
+# create_worktree <repo> <branch> <path>
+# Checks out an existing local branch, otherwise branches off origin/<branch>
+# when it exists, else off origin's default branch.
+create_worktree() {
+  local repo=$1 branch=$2 path=$3 start
+
+  if branch_exists "$repo" "refs/heads/$branch"; then
+    echo "Checking out existing branch $branch..."
+    git -C "$repo" worktree add "$path" "$branch"
+    return
+  fi
+
+  if branch_exists "$repo" "refs/remotes/origin/$branch"; then
+    start="origin/$branch"
+  else
+    start="origin/$(default_branch "$repo")"
+  fi
+  echo "Creating branch $branch from $start..."
+  git -C "$repo" worktree add "$path" -b "$branch" "$start"
+  git -C "$repo" branch --unset-upstream "$branch" 2>/dev/null || true
+}
+
+# copy_untracked <repo> <dest>
+# Copies files matching @harbor-worktree-copy (a find -name pattern, default
+# .env) from the main checkout into the new worktree, searching up to
+# @harbor-worktree-copy-depth levels so monorepo packages get theirs too.
+copy_untracked() {
+  local repo=$1 dest=$2 pattern depth f
+  pattern="$(get_tmux_option @harbor-worktree-copy '.env')"
+  depth="$(get_tmux_option @harbor-worktree-copy-depth '2')"
+  [ -n "$pattern" ] || return 0
+  (cd "$repo" && find . -maxdepth "$depth" -name "$pattern" -type f -not -path './.git/*' -not -path "./$(worktrees_dir)/*") |
+    while IFS= read -r f; do
+      mkdir -p "$dest/$(dirname "$f")"
+      cp "$repo/$f" "$dest/$f"
+    done
+}
+
+# worktree <repo-or-worktree> <branch> [client]
+# Creates <repo>/<worktrees-dir>/<branch with / replaced by -> and opens a
+# session for it, typing @harbor-worktree-cmd into it when set.
+worktree() {
+  local base repo branch=$2 client=$3 sub path
+  base="$(expand_tilde "$1")"
+  [ -n "$base" ] && [ -n "$branch" ] || return 0
+
+  repo="$(worktree_root "$base")" || repo="$base"
+  sub="$(worktrees_dir)"
+  if [ -z "$sub" ]; then
+    echo "@harbor-worktrees-dir is empty; cannot create worktrees"
+    return 1
+  fi
+  if ! git -C "$repo" rev-parse --git-dir >/dev/null 2>&1; then
+    echo "Not a git repository: $repo"
+    return 1
+  fi
+
+  path="$repo/$sub/$(printf '%s' "$branch" | tr '/' '-')"
+  if [ ! -d "$path" ]; then
+    create_worktree "$repo" "$branch" "$path" || return 1
+    copy_untracked "$repo" "$path"
+  fi
+  open "$path" "$(get_tmux_option @harbor-worktree-cmd '')" "$client"
 }
 
 # ----------------------------------------------------------------------------
@@ -169,7 +245,7 @@ vsplit() {
 
 pick() {
   local client=$1 session=$2 pane=$3
-  local k_window k_split k_vsplit k_remove out key selected
+  local k_window k_split k_vsplit k_remove k_worktree out key selected branch
 
   for dep in tmux fzf; do
     command -v "$dep" >/dev/null 2>&1 || { echo "$dep is not installed"; exit 1; }
@@ -179,15 +255,16 @@ pick() {
   k_split="$(get_tmux_option @harbor-fzf-key-split 'ctrl-s')"
   k_vsplit="$(get_tmux_option @harbor-fzf-key-vsplit 'ctrl-v')"
   k_remove="$(get_tmux_option @harbor-fzf-key-remove-worktree 'ctrl-x')"
+  k_worktree="$(get_tmux_option @harbor-fzf-key-worktree 'ctrl-n')"
 
   # ctrl-s is XOFF on most ttys; without this fzf never sees it.
   stty -ixon 2>/dev/null
 
   out="$(
     list | fzf \
-      --expect="$k_window,$k_split,$k_vsplit" \
+      --expect="$k_window,$k_split,$k_vsplit,$k_worktree" \
       --bind "$k_remove:execute($SELF remove {})+reload($SELF list)" \
-      --header "enter:session  $k_window:window  $k_split:split  $k_vsplit:vsplit  $k_remove:remove worktree"
+      --header "enter:session  $k_window:window  $k_split:split  $k_vsplit:vsplit  $k_worktree:new worktree  $k_remove:remove worktree"
   )" || return 0
 
   key="$(printf '%s\n' "$out" | sed -n 1p)"
@@ -205,6 +282,15 @@ pick() {
     "$k_window") window "$session" "$selected" ;;
     "$k_split") hsplit "$pane" "$selected" ;;
     "$k_vsplit") vsplit "$pane" "$selected" ;;
+    "$k_worktree")
+      printf 'Branch name: '
+      read -r branch
+      [ -n "$branch" ] || return 0
+      if ! worktree "$selected" "$branch" "$client"; then
+        echo "Press any key to close."
+        read -rn 1
+      fi
+      ;;
     *) open "$selected" '' "$client" ;;
   esac
 }
@@ -221,6 +307,7 @@ case ${1:-pick} in
   hsplit) hsplit "$2" "$3" ;;
   vsplit) vsplit "$2" "$3" ;;
   remove) remove "$2" ;;
+  worktree) worktree "$2" "$3" ;;
   -*) sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
   *) open "$1" "$2" ;;   # legacy: harbor.sh <dir> [init_cmd]
 esac
