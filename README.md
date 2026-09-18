@@ -13,13 +13,19 @@ With [tpm](https://github.com/tmux-plugins/tpm):
 
 ```tmux
 set -g @plugin 'ddzero2c/tmux-harbor'
+set -g @harbor-key 'o'
 ```
 
 Press `prefix + I` to install.
 
 ## Usage
 
-`prefix + o` opens the picker.
+`prefix + <@harbor-key>` opens the picker. No key is bound unless you set
+`@harbor-key`. You can also bind the launcher yourself, e.g. without the prefix:
+
+```tmux
+bind -n M-o run-shell "~/.tmux/plugins/tmux-harbor/scripts/launch.sh '#{q:client_name}' '#{session_id}' '#{pane_id}'"
+```
 
 | Key      | Action                                                   |
 | -------- | -------------------------------------------------------- |
@@ -44,7 +50,7 @@ harbor.sh list                       # print candidate directories
 ## Options
 
 ```tmux
-set -g @harbor-key 'o'                      # prefix key
+set -g @harbor-key 'o'                      # prefix key (unset = no binding)
 set -g @harbor-paths '~/repo ~/work'        # dirs whose children are listed
 set -g @harbor-worktrees '.claude/worktrees' # worktree subdirs under each child
 set -g @harbor-popup 'on'                    # off = run the picker in a new window
