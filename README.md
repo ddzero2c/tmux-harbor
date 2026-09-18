@@ -35,7 +35,7 @@ Default keys inside the picker (each is configurable, see Options):
 | `ctrl-t` | new window in the current session at that directory      |
 | `ctrl-s` | horizontal split (below the current pane)                |
 | `ctrl-v` | vertical split (right of the current pane)               |
-| `ctrl-n` | create a git worktree in the selected repo (asks for a branch name) and open a session for it |
+| `ctrl-w` | create a git worktree in the selected repo (asks for a branch name) and open a session for it |
 | `ctrl-x` | if the entry is a worktree: remove it, its branch and session (asks first) |
 
 Session names are the directory basename with `.` and `:` replaced by `_`.
@@ -64,7 +64,7 @@ set -g @harbor-popup-height '80%'
 set -g @harbor-fzf-key-window 'ctrl-t'           # fzf keys, in fzf key syntax: new window
 set -g @harbor-fzf-key-split 'ctrl-s'            # horizontal split
 set -g @harbor-fzf-key-vsplit 'ctrl-v'           # vertical split
-set -g @harbor-fzf-key-worktree 'ctrl-n'          # new worktree
+set -g @harbor-fzf-key-worktree 'ctrl-w'          # new worktree
 set -g @harbor-fzf-key-remove-worktree 'ctrl-x'   # remove worktree
 ```
 
@@ -75,7 +75,7 @@ under the worktrees dir are the ones `ctrl-x` can remove. Set
 
 ### Worktrees
 
-`ctrl-n` on a repo (or on one of its worktrees) asks for a branch name and
+`ctrl-w` on a repo (or on one of its worktrees) asks for a branch name and
 creates `<repo>/<@harbor-worktrees-dir>/<branch>` (with `/` replaced by `-`).
 An existing local branch is checked out; otherwise the branch is created from
 `origin/<branch>` when it exists, else from origin's default branch. Files
