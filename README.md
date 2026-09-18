@@ -64,7 +64,7 @@ set -g @harbor-popup-height '80%'
 set -g @harbor-fzf-key-window 'ctrl-t'           # fzf keys, in fzf key syntax: new window
 set -g @harbor-fzf-key-split 'ctrl-s'            # horizontal split
 set -g @harbor-fzf-key-vsplit 'ctrl-v'           # vertical split
-set -g @harbor-fzf-key-worktree 'ctrl-w'          # new worktree
+set -g @harbor-fzf-key-new-worktree 'ctrl-w'          # new worktree
 set -g @harbor-fzf-key-remove-worktree 'ctrl-x'   # remove worktree
 ```
 

@@ -18,7 +18,7 @@
 #   @harbor-fzf-key-window           fzf key: new window        (default: ctrl-t)
 #   @harbor-fzf-key-split            fzf key: horizontal split  (default: ctrl-s)
 #   @harbor-fzf-key-vsplit           fzf key: vertical split    (default: ctrl-v)
-#   @harbor-fzf-key-worktree         fzf key: new worktree      (default: ctrl-w)
+#   @harbor-fzf-key-new-worktree     fzf key: new worktree      (default: ctrl-w)
 #   @harbor-fzf-key-remove-worktree  fzf key: remove worktree   (default: ctrl-x)
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
