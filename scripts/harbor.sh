@@ -14,7 +14,7 @@
 #   ctrl-t  new window in the current session            (@harbor-key-window)
 #   ctrl-s  horizontal split (below) in the current pane (@harbor-key-split)
 #   ctrl-v  vertical split (right) in the current pane   (@harbor-key-vsplit)
-#   ctrl-x  delete the selected worktree, branch, session (@harbor-key-remove)
+#   ctrl-x  delete the selected worktree, branch, session (@harbor-key-remove-worktree)
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=helpers.sh
@@ -178,7 +178,7 @@ pick() {
   k_window="$(get_tmux_option @harbor-key-window 'ctrl-t')"
   k_split="$(get_tmux_option @harbor-key-split 'ctrl-s')"
   k_vsplit="$(get_tmux_option @harbor-key-vsplit 'ctrl-v')"
-  k_remove="$(get_tmux_option @harbor-key-remove 'ctrl-x')"
+  k_remove="$(get_tmux_option @harbor-key-remove-worktree 'ctrl-x')"
 
   # ctrl-s is XOFF on most ttys; without this fzf never sees it.
   stty -ixon 2>/dev/null
