@@ -28,7 +28,7 @@ SELF="$CURRENT_DIR/harbor.sh"
 
 search_paths() {
   local raw p
-  raw="$(get_tmux_option @harbor-paths '~/repo')"
+  raw="$(get_tmux_option @harbor-paths '~')"
   for p in $raw; do
     expand_tilde "$p"
     echo

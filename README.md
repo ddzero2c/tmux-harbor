@@ -51,7 +51,7 @@ harbor.sh list                       # print candidate directories
 
 ```tmux
 set -g @harbor-key 'o'                      # prefix key (unset = no binding)
-set -g @harbor-paths '~/repo ~/work'        # dirs whose children are listed
+set -g @harbor-paths '~/repo ~/work'        # dirs whose children are listed (default: ~)
 set -g @harbor-worktrees '.claude/worktrees' # worktree subdirs under each child
 set -g @harbor-popup 'on'                    # off = run the picker in a new window
 set -g @harbor-popup-width '80%'

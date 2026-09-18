@@ -8,7 +8,7 @@
 #
 # Options (set -g @harbor-<name> '<value>' before running tpm):
 #   @harbor-key          prefix key that opens the picker      (default: none)
-#   @harbor-paths        dirs to list, space separated          (default: ~/repo)
+#   @harbor-paths        dirs to list, space separated          (default: ~)
 #   @harbor-worktrees    worktree subdirs under each listed dir (default: .claude/worktrees)
 #   @harbor-popup        on = display-popup, off = new window   (default: on)
 #   @harbor-popup-width  popup width                            (default: 80%)
