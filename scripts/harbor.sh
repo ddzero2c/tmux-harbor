@@ -9,12 +9,12 @@
 #   harbor.sh remove <dir>                            delete the worktree at <dir>
 #   harbor.sh list                                    print candidate dirs
 #
-# Picker keys (defaults; override with @harbor-key-<action>):
+# Picker keys (defaults; override with @harbor-fzf-key-<action>):
 #   enter   open (or attach to) a session named after the directory
-#   ctrl-t  new window in the current session            (@harbor-key-window)
-#   ctrl-s  horizontal split (below) in the current pane (@harbor-key-split)
-#   ctrl-v  vertical split (right) in the current pane   (@harbor-key-vsplit)
-#   ctrl-x  delete the selected worktree, branch, session (@harbor-key-remove-worktree)
+#   ctrl-t  new window in the current session            (@harbor-fzf-key-window)
+#   ctrl-s  horizontal split (below) in the current pane (@harbor-fzf-key-split)
+#   ctrl-v  vertical split (right) in the current pane   (@harbor-fzf-key-vsplit)
+#   ctrl-x  delete the selected worktree, branch, session (@harbor-fzf-key-remove-worktree)
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=helpers.sh
@@ -175,10 +175,10 @@ pick() {
     command -v "$dep" >/dev/null 2>&1 || { echo "$dep is not installed"; exit 1; }
   done
 
-  k_window="$(get_tmux_option @harbor-key-window 'ctrl-t')"
-  k_split="$(get_tmux_option @harbor-key-split 'ctrl-s')"
-  k_vsplit="$(get_tmux_option @harbor-key-vsplit 'ctrl-v')"
-  k_remove="$(get_tmux_option @harbor-key-remove-worktree 'ctrl-x')"
+  k_window="$(get_tmux_option @harbor-fzf-key-window 'ctrl-t')"
+  k_split="$(get_tmux_option @harbor-fzf-key-split 'ctrl-s')"
+  k_vsplit="$(get_tmux_option @harbor-fzf-key-vsplit 'ctrl-v')"
+  k_remove="$(get_tmux_option @harbor-fzf-key-remove-worktree 'ctrl-x')"
 
   # ctrl-s is XOFF on most ttys; without this fzf never sees it.
   stty -ixon 2>/dev/null

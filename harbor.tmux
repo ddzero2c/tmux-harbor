@@ -12,10 +12,10 @@
 #   @harbor-worktrees    worktree subdirs under each listed dir (default: .claude/worktrees)
 #   @harbor-popup-width  popup width                            (default: 80%)
 #   @harbor-popup-height popup height                           (default: 80%)
-#   @harbor-key-window   fzf key: new window                    (default: ctrl-t)
-#   @harbor-key-split    fzf key: horizontal split              (default: ctrl-s)
-#   @harbor-key-vsplit   fzf key: vertical split                (default: ctrl-v)
-#   @harbor-key-remove-worktree  fzf key: remove worktree       (default: ctrl-x)
+#   @harbor-fzf-key-window           fzf key: new window        (default: ctrl-t)
+#   @harbor-fzf-key-split            fzf key: horizontal split  (default: ctrl-s)
+#   @harbor-fzf-key-vsplit           fzf key: vertical split    (default: ctrl-v)
+#   @harbor-fzf-key-remove-worktree  fzf key: remove worktree   (default: ctrl-x)
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/helpers.sh
