@@ -10,7 +10,6 @@
 #   @harbor-key          prefix key that opens the picker      (default: none)
 #   @harbor-paths        dirs to list, space separated          (default: ~)
 #   @harbor-worktrees    worktree subdirs under each listed dir (default: .claude/worktrees)
-#   @harbor-popup        on = display-popup, off = new window   (default: on)
 #   @harbor-popup-width  popup width                            (default: 80%)
 #   @harbor-popup-height popup height                           (default: 80%)
 

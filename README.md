@@ -27,6 +27,8 @@ Press `prefix + I` to install.
 bind -n M-o run-shell "~/.tmux/plugins/tmux-harbor/scripts/launch.sh '#{q:client_name}' '#{session_id}' '#{pane_id}'"
 ```
 
+Default keys inside the picker (each is configurable, see Options):
+
 | Key      | Action                                                   |
 | -------- | -------------------------------------------------------- |
 | `enter`  | open (or attach to) a session named after the directory  |
@@ -53,9 +55,12 @@ harbor.sh list                       # print candidate directories
 set -g @harbor-key 'o'                      # prefix key (unset = no binding)
 set -g @harbor-paths '~/repo ~/work'        # dirs whose children are listed (default: ~)
 set -g @harbor-worktrees '.claude/worktrees' # worktree subdirs under each child
-set -g @harbor-popup 'on'                    # off = run the picker in a new window
 set -g @harbor-popup-width '80%'
 set -g @harbor-popup-height '80%'
+set -g @harbor-key-window 'ctrl-t'           # fzf keys, in fzf key syntax
+set -g @harbor-key-split 'ctrl-s'
+set -g @harbor-key-vsplit 'ctrl-v'
+set -g @harbor-key-remove 'ctrl-x'
 ```
 
 `@harbor-paths` and `@harbor-worktrees` take space separated values.

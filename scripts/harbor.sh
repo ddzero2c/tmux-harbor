@@ -9,12 +9,12 @@
 #   harbor.sh remove <dir>                            delete the worktree at <dir>
 #   harbor.sh list                                    print candidate dirs
 #
-# Picker keys:
+# Picker keys (defaults; override with @harbor-key-<action>):
 #   enter   open (or attach to) a session named after the directory
-#   ctrl-t  new window in the current session
-#   ctrl-s  horizontal split (below) in the current pane
-#   ctrl-v  vertical split (right) in the current pane
-#   ctrl-x  delete the selected worktree (and its branch and session)
+#   ctrl-t  new window in the current session            (@harbor-key-window)
+#   ctrl-s  horizontal split (below) in the current pane (@harbor-key-split)
+#   ctrl-v  vertical split (right) in the current pane   (@harbor-key-vsplit)
+#   ctrl-x  delete the selected worktree, branch, session (@harbor-key-remove)
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=helpers.sh
@@ -168,20 +168,26 @@ vsplit() {
 # ----------------------------------------------------------------------------
 
 pick() {
-  local client=$1 session=$2 pane=$3 out key selected
+  local client=$1 session=$2 pane=$3
+  local k_window k_split k_vsplit k_remove out key selected
 
   for dep in tmux fzf; do
     command -v "$dep" >/dev/null 2>&1 || { echo "$dep is not installed"; exit 1; }
   done
+
+  k_window="$(get_tmux_option @harbor-key-window 'ctrl-t')"
+  k_split="$(get_tmux_option @harbor-key-split 'ctrl-s')"
+  k_vsplit="$(get_tmux_option @harbor-key-vsplit 'ctrl-v')"
+  k_remove="$(get_tmux_option @harbor-key-remove 'ctrl-x')"
 
   # ctrl-s is XOFF on most ttys; without this fzf never sees it.
   stty -ixon 2>/dev/null
 
   out="$(
     list | fzf \
-      --expect=ctrl-t,ctrl-s,ctrl-v \
-      --bind "ctrl-x:execute($SELF remove {})+reload($SELF list)" \
-      --header 'enter:session  ^t:window  ^s:split  ^v:vsplit  ^x:rm worktree'
+      --expect="$k_window,$k_split,$k_vsplit" \
+      --bind "$k_remove:execute($SELF remove {})+reload($SELF list)" \
+      --header "enter:session  $k_window:window  $k_split:split  $k_vsplit:vsplit  $k_remove:rm worktree"
   )" || return 0
 
   key="$(printf '%s\n' "$out" | sed -n 1p)"
@@ -196,9 +202,9 @@ pick() {
   fi
 
   case $key in
-    ctrl-t) window "$session" "$selected" ;;
-    ctrl-s) hsplit "$pane" "$selected" ;;
-    ctrl-v) vsplit "$pane" "$selected" ;;
+    "$k_window") window "$session" "$selected" ;;
+    "$k_split") hsplit "$pane" "$selected" ;;
+    "$k_vsplit") vsplit "$pane" "$selected" ;;
     *) open "$selected" '' "$client" ;;
   esac
 }
