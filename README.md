@@ -57,10 +57,10 @@ set -g @harbor-paths '~/repo ~/work'        # dirs whose children are listed (de
 set -g @harbor-worktrees '.claude/worktrees' # worktree subdirs under each child
 set -g @harbor-popup-width '80%'
 set -g @harbor-popup-height '80%'
-set -g @harbor-key-window 'ctrl-t'           # fzf keys, in fzf key syntax
-set -g @harbor-key-split 'ctrl-s'
-set -g @harbor-key-vsplit 'ctrl-v'
-set -g @harbor-key-remove 'ctrl-x'
+set -g @harbor-key-window 'ctrl-t'           # fzf keys, in fzf key syntax: new window
+set -g @harbor-key-split 'ctrl-s'            # horizontal split
+set -g @harbor-key-vsplit 'ctrl-v'           # vertical split
+set -g @harbor-key-remove 'ctrl-x'           # remove worktree
 ```
 
 `@harbor-paths` and `@harbor-worktrees` take space separated values.

@@ -187,7 +187,7 @@ pick() {
     list | fzf \
       --expect="$k_window,$k_split,$k_vsplit" \
       --bind "$k_remove:execute($SELF remove {})+reload($SELF list)" \
-      --header "enter:session  $k_window:window  $k_split:split  $k_vsplit:vsplit  $k_remove:rm worktree"
+      --header "enter:session  $k_window:window  $k_split:split  $k_vsplit:vsplit  $k_remove:remove worktree"
   )" || return 0
 
   key="$(printf '%s\n' "$out" | sed -n 1p)"
