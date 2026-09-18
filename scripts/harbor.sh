@@ -157,14 +157,15 @@ create_worktree() {
 
 # copy_untracked <repo> <dest>
 # Copies files matching @harbor-worktree-copy (a find -name pattern, default
-# .env) from the main checkout into the new worktree, searching up to
-# @harbor-worktree-copy-depth levels so monorepo packages get theirs too.
+# .env) from the main checkout into the new worktree. @harbor-worktree-copy-depth
+# is how many directory levels below the repo root to search: 2 (the default)
+# finds ./.env, ./app/.env and ./packages/app/.env, so monorepos are covered.
 copy_untracked() {
   local repo=$1 dest=$2 pattern depth f
   pattern="$(get_tmux_option @harbor-worktree-copy '.env')"
   depth="$(get_tmux_option @harbor-worktree-copy-depth '2')"
   [ -n "$pattern" ] || return 0
-  (cd "$repo" && find . -maxdepth "$depth" -name "$pattern" -type f -not -path './.git/*' -not -path "./$(worktrees_dir)/*") |
+  (cd "$repo" && find . -maxdepth "$((depth + 1))" -name "$pattern" -type f -not -path './.git/*' -not -path "./$(worktrees_dir)/*") |
     while IFS= read -r f; do
       mkdir -p "$dest/$(dirname "$f")"
       cp "$repo/$f" "$dest/$f"
@@ -215,7 +216,8 @@ open() {
 
   if ! has_session "$name"; then
     tmux new-session -ds "$name" -c "$dir"
-    [ -n "$2" ] && tmux send-keys -t "=$name" "$2" Enter
+    # "=name" is exact-match only for session targets; pane targets need "=name:".
+    [ -n "$2" ] && tmux send-keys -t "=$name:" "$2" Enter
   fi
 
   if [ -n "$3" ]; then

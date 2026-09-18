@@ -58,7 +58,7 @@ set -g @harbor-paths '~/repo ~/work'        # dirs whose children are listed (de
 set -g @harbor-worktrees-dir '.claude/worktrees' # worktree dir under each repo
 set -g @harbor-worktree-cmd 'claude'          # typed into a new worktree's session
 set -g @harbor-worktree-copy '.env'           # find -name pattern copied into new worktrees
-set -g @harbor-worktree-copy-depth '2'        # how deep to look for them (monorepos)
+set -g @harbor-worktree-copy-depth '2'        # directory levels to search, e.g. packages/app/.env
 set -g @harbor-popup-width '80%'
 set -g @harbor-popup-height '80%'
 set -g @harbor-fzf-key-window 'ctrl-t'           # fzf keys, in fzf key syntax: new window
@@ -79,8 +79,8 @@ under the worktrees dir are the ones `ctrl-x` can remove. Set
 creates `<repo>/<@harbor-worktrees-dir>/<branch>` (with `/` replaced by `-`).
 An existing local branch is checked out; otherwise the branch is created from
 `origin/<branch>` when it exists, else from origin's default branch. Files
-matching `@harbor-worktree-copy` (searched `@harbor-worktree-copy-depth` levels
-deep in the main checkout) are copied over, then a session opens for the new
+matching `@harbor-worktree-copy` (searched `@harbor-worktree-copy-depth` directory
+levels below the main checkout, so `packages/app/.env` is included by default) are copied over, then a session opens for the new
 worktree and `@harbor-worktree-cmd`, when set, is typed into it.
 
 ## Credits
